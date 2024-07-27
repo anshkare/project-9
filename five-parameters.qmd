@@ -1,0 +1,14 @@
+---
+title: "five-parameters"
+author: "Ansh Kare"
+format: html
+execut: 
+  echo: false
+---
+```{r}
+#| label: setup
+#| message: false
+library(tidyverse)
+library(primer.data)
+```
+
