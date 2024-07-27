@@ -10,5 +10,43 @@ execut:
 #| message: false
 library(tidyverse)
 library(primer.data)
+library(brms)
+library(tidybayes)
+library(gtsummary)
 ```
+
+```{r}
+#| label: model
+#| cache: true
+df1<- governors |> select(last_name, year, state, sex, lived_after, election_age)
+fit_all <- brm(data = df1, formula = lived_after ~ sex*election_age, silent = 2, refresh = 0, seed = 13)
+
+```
+```{r}
+tbl_regression(fit_all, intercept = TRUE)
+
+```
+```{r}
+newdata<-tibble(sex = c("Male", "Female"), 
+       election_age = 50)
+
+ndata<-tibble(sex = c("Male", "Female"), 
+       election_age = 50)
+
+fit_all |>add_epred_draws(newdata = ndata)|>
+ggplot(aes(.epred, fill = sex))+
+geom_histogram(aes(y = after_stat(count/sum(count))), alpha = 0.5, bins =100, position = "identity")+
+scale_x_continuous(labels = scales::number_format(accuracy = 1))+
+scale_y_continuous(labels = scales::percent_format(accuracy = 1))+
+labs(title = "Posterior for Expected Years Lived Post-Election", subtitle = "Male candidates live longer", x = "years", y = "Probability")
+
+```
+
+We identified our quantity of interest, and created a preceptor table from the data we pulled from primer.data, a dataset called governors, containing all the information of candidates participating for governor from the past century to 2012. We took the data we had and determined whether the data was valid to use or not with treatment, from column to column. We seek to forecast candidate longevity in state-wide US races post-election. There is concern that longevity for gubernatorial candidates will differ significantly from that for candidates in Senate and other state-wide elections. We created a data generating machine that gave posterior predictions on the effects of men and women age effects after being a governor. The model reveals that the interaction between sex and election age has a positive direction, suggesting that as election age increases, the life expectancy difference between male and female governors tends to widen. Finally, we created a graph with our posterior predictions to visually show how much more males tend to live than females.
+
+
+Formula:
+
+$$ lived\_after_i =  \beta_0 + \beta_1 male_i + \beta_2 c\_election\_age_i + 
+\\ \beta_3 male_i *  c\_election\_age_i + \epsilon_i $$
 
